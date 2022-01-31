@@ -2,7 +2,7 @@ function expt = generateRDKExptStructure(preset_name)
     
    
     if strcmp(preset_name, 'Sequence report')
-        direction_pool = [0, 90, 180, 360];
+        direction_pool = [0, 90, 180, 270];
         lengths = [4 6 8];
         
         expt.numTrials = 120;

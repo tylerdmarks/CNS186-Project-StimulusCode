@@ -3,6 +3,7 @@ clear
 KbName('UnifyKeyNames');        % fixes an error calling KbName('ESCAPE'), might be a Windows thing
 
 screenID = 0;
+testing = 1;
 % File name, change for each new participant       'subjectnumber_nameoftask_date'
 ID = 'S001_RDKsequencetask_220120'; 
 % Get monitor's refresh rate
@@ -101,7 +102,7 @@ for tt = 1:expt.numTrials
         % Draw the fixation cross
         Screen('DrawLines', ptr, fix.coords, fix.width, fix.color, fix.pos, 2);
         % Draw title message
-        DrawFormattedText(ptr, 'Look at the fixation cross, then press the space bar.', winCtr(1), winCtr(2) - displaySize(2)/4, fix.color);
+        DrawFormattedText(ptr, 'Look at the fixation cross, then press the space bar.', winCtr(1)-displaySize(1)/4, winCtr(2) - displaySize(2)/4, fix.color);
         % Render to screen
         Screen('Flip', ptr);
 
@@ -161,6 +162,9 @@ for tt = 1:expt.numTrials
             % Draw the fixation cross
             Screen('DrawLines', ptr, fix.coords, fix.width, fix.color, fix.pos, 2);
             
+            drawArrow(ptr, 'left')
+            drawArrow(ptr, 'right') 
+
             %convert from degrees to screen pixels
             pixpos.x = dot_properties.x+ display.resolution(1)/2;
             pixpos.y = dot_properties.y+ display.resolution(2)/2;
@@ -195,12 +199,17 @@ for tt = 1:expt.numTrials
             Screen('Flip', ptr);
         end
         
+        % ISI
         preISITime = GetSecs;
         while GetSecs - preISITime < ISI
             % Gray background
             Screen('FillRect', ptr, background)
             % Draw the fixation cross
             Screen('DrawLines', ptr, fix.coords, fix.width, fix.color, fix.pos, 2);
+            
+            drawArrow(ptr, 'left')
+            drawArrow(ptr, 'right')
+            
             % Render to screen
             Screen('Flip', ptr);
         end
@@ -216,13 +225,65 @@ for tt = 1:expt.numTrials
         end
         
     end
-            
-    
-    
-    
+
     %% RESPONSE PERIOD
     % log duration of response period and response sequence
-
+    if ~testing
+    response_complete = false;
+    curr_response = [];
+    feedback_startpoint_x = [];     % starting x location for feedback display, based on sequence length
+    feedback_startpoint_y = [];     % starting y location for feedback
+    offset = [];            % element distancing in x direction
+    preResptime = GetSecs;
+    while ~response_complete
+        % if response vector is equal to length of sequence, response is complete
+        if length(curr_response) == length(sequence)
+            response_complete = true;
+        end
+        
+        % Gray background
+        Screen('FillRect', ptr, background)
+        % Instructions
+        DrawFormattedText(ptr, 'Repeat the sequence with the arrow keys.', winCtr(1)-displaySize(1)/4, winCtr(2) - displaySize(2)/4, fix.color);
+        % Draw response options (arrows at set locations)
+        
+        % Draw 
+        for rr = 1:length(response)
+            % get x location (add set distance per element)
+            
+            % draw element
+        end
+        
+        % render everything
+        Screen('Flip', ptr);
+        
+        % check response
+        [~, ~, keycode, ~] = KbCheck(-1);
+        if keycode(KbName('LeftArrow'))
+            curr_response = [curr_response 270];
+        elseif keycode(KbName('RightArrow'))
+            curr_response = [curr_response 90];
+        elseif keycode(KbName('UpArrow'))
+            curr_response = [curr_response 0];
+        elseif keycode(KbName('DownArrow'))
+            curr_response = [curr_response 180];
+        elseif keycode(KbName('ESCAPE'))
+            sca
+            % Save all workspace variables
+            save(data_filename)
+            return
+        end
+        
+        if response_complete
+            pause(1)
+            curr_resptime = GetSecs-preResptime;
+        end
+    end
+    response.time(tt) = curr_resptime;
+    response.sequence{tt} = curr_response;
+    end
+    
+   
     
     
 end
@@ -262,6 +323,38 @@ function pix = angle2pix(display_properties, ang)
 
     pix = round(sz/pixSize);   %pix
 
+end
+
+% Other subfunctions
+function drawArrow(ptr, direction, location)
+    % Draws an arrow using FillPoly and DrawLines
+    % direction = direction the arrowhead is facing
+    % location = [x,y] location of arrowhead
+    
+    % create a triangle
+    head   = [ 600, 600 ]; % coordinates of head
+    width  = 40;           % width of arrow head
+    switch direction
+        case 'up'
+        points = [ head-[width/2,0]         % left corner
+                   head+[width/2,0]         % right corner
+                   head-[0,width] ];      % vertex
+        case 'down'
+        points = [ head-[width/2,0]         % left corner
+                   head+[width/2,0]         % right corner
+                   head+[0,width] ];      % vertex
+               
+        case 'left'
+        points = [ head-[0,width/2]         % left corner
+                   head+[0,width/2]         % right corner
+                   head-[width,0] ];      % vertex
+        case 'right' 
+        points = [ head-[0,width/2]         % left corner
+                   head+[0,width/2]         % right corner
+                   head+[width,0] ];      % vertex
+    end
+    Screen('FillPoly', ptr, [0 0 0], points);
+        
 end
 
 
