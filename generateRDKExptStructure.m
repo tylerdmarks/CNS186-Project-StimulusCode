@@ -1,31 +1,28 @@
 function expt = generateRDKExptStructure(preset_name)
     
    
-    if strcmp(preset_name, 'Expt1')
-        % Set number of blocks. Block types are as follows:
-        %   1  :  all prosaccade, 50% chance primer in target loc, 50% no primer
-        %   2  :  all antisacccade, 50% chance primer in target loc, 50% no primer
+    if strcmp(preset_name, 'Sequence report')
+        direction_pool = [0, 90, 180, 360];
+        lengths = [4 6 8];
         
         expt.numTrials = 120;
-       
-        % 
+        expt.field = zeros(1, expt.numTrials);      % inferior VF = 0, superior VF = 1
+        sup_trials = binaryrandomize(expt.numTrials);        % select a random half of trials to present upper
+        expt.field(sup_trials) = 1;
+        expt.sequence = cell(1, expt.numTrials);       % contains sequence for every trial
+        sequence_lengths = zeros(1, expt.numTrials);    % lengths of each of the sequences (random thirds)
+        random_lengths = tertiaryrandomize(expt.numTrials);
+        sequence_lengths(random_lengths == 1) = lengths(2);
+        sequence_lengths(random_lengths == 2) = lengths(3);
+        sequence_lengths(sequence_lengths == 0) = lengths(1);
+        for ss = 1:expt.numTrials
+            curr_length = sequence_lengths(ss);
+            random_directions = datasample(direction_pool, curr_length);
+            expt.sequence{ss} = random_directions;
+        end
         
-        expt.presVFsup = zeros(1, expt.numTrials);  % logical vector indicating whether to present an RDK in superior field
-        expt.presVFinf = zeros(1, expt.numTrials);  % logical vector indicating whether to present in inferior field
-        right_trials = binaryrandomize(expt.block(1).numTrials);        % select a random half of trials to cue right
-        expt.block(1).trialOrder(right_trials, 1) = 1;          
-        expt.block(1).trialOrder(:, 2) = 0;             % all prosaccade trials 
-        primer_trials = binaryrandomize(expt.block(1).numTrials);   % select random half of trials for primer presentation
-        expt.block(1).trialOrder(primer_trials, 3) = 1;             % present primer on 50% of trials
-
-        % Block 2
-        expt.block(2).numTrials = 60;   
-        expt.block(2).trialOrder = zeros(expt.block(2).numTrials, 3);  
-        right_trials = binaryrandomize(expt.block(2).numTrials);        % select a random half of trials to cue right
-        expt.block(2).trialOrder(right_trials, 1) = 1; 
-        expt.block(2).trialOrder(:, 2) = 1;             % all antisaccade trials
-        primer_trials = binaryrandomize(expt.block(2).numTrials);
-        expt.block(2).trialOrder(primer_trials, 3) = 1;             % present primer on 50% of trials
+    elseif strcmp(preset_name, 'Orientation report')
+        % two direction pools: left, right & up, down
     end
 
 
