@@ -3,9 +3,9 @@ function expt = generateRDKExptStructure(preset_name)
    
     if strcmp(preset_name, 'Sequence report')
         direction_pool = [0, 90, 180, 270];
-        lengths = [4 6 8];
-        
-        expt.numTrials = 120;
+        lengths = [4 5 6];
+        % going to want at least 30 trials each difficulty (90 total)
+        expt.numTrials = 90;
         expt.field = zeros(1, expt.numTrials);      % inferior VF = 0, superior VF = 1
         sup_trials = binaryrandomize(expt.numTrials);        % select a random half of trials to present upper
         expt.field(sup_trials) = 1;
@@ -20,9 +20,73 @@ function expt = generateRDKExptStructure(preset_name)
             random_directions = datasample(direction_pool, curr_length);
             expt.sequence{ss} = random_directions;
         end
-        
+    elseif strcmp(preset_name, 'Sequence report constant diff')
+        direction_pool = [0, 90, 180, 270];
+        length = 6;
+        % going to want at least 30 trials each difficulty (90 total)
+        % 90 trials ~= 15min
+        expt.numTrials = 90;
+        expt.field = zeros(1, expt.numTrials);      % inferior VF = 0, superior VF = 1
+        sup_trials = binaryrandomize(expt.numTrials);        % select a random half of trials to present upper
+        expt.field(sup_trials) = 1;
+        expt.sequence = cell(1, expt.numTrials);       % contains sequence for every trial
+        for ss = 1:expt.numTrials
+            random_directions = datasample(direction_pool, length);
+            expt.sequence{ss} = random_directions;
+        end
     elseif strcmp(preset_name, 'Orientation report')
-        % two direction pools: left, right & up, down
+        direction_pool = [90, 270];
+        lengths = [6 7];
+        % at least 30 trials each difficulty (90 total)
+        expt.numTrials = 90;
+        expt.field = zeros(1, expt.numTrials);      % inferior VF = 0, superior VF = 1
+        sup_trials = binaryrandomize(expt.numTrials);        % select a random half of trials to present upper
+        expt.field(sup_trials) = 1;
+        expt.sequence = cell(1, expt.numTrials);       % contains sequence for every trial
+        sequence_lengths = zeros(1, expt.numTrials);    % lengths of each of the sequences (random thirds)
+        
+        % for 3 possible lengths
+%         random_lengths = tertiaryrandomize(expt.numTrials);
+%         sequence_lengths(random_lengths == 1) = lengths(2);
+%         sequence_lengths(random_lengths == 2) = lengths(3);
+%         sequence_lengths(sequence_lengths == 0) = lengths(1);
+
+        % for 2 possible lengths
+        random_lengths = binaryrandomize(expt.numTrials);
+        sequence_lengths(random_lengths) = lengths(2);
+        sequence_lengths(sequence_lengths == 0) = lengths(1);
+
+        for ss = 1:expt.numTrials
+            curr_length = sequence_lengths(ss);
+            random_directions = datasample(direction_pool, curr_length);
+            expt.sequence{ss} = random_directions;
+        end
+    elseif strcmp(preset_name, 'Orientation report constant diff')
+        direction_pool = [90, 270];
+        length = 6;
+        % at least 30 trials each difficulty (90 total)
+        expt.numTrials = 90;
+        expt.field = zeros(1, expt.numTrials);      % inferior VF = 0, superior VF = 1
+        sup_trials = binaryrandomize(expt.numTrials);        % select a random half of trials to present upper
+        expt.field(sup_trials) = 1;
+        expt.sequence = cell(1, expt.numTrials);       % contains sequence for every trial
+        for ss = 1:expt.numTrials
+            random_directions = datasample(direction_pool, length);
+            expt.sequence{ss} = random_directions;
+        end
+    elseif strcmp(preset_name, 'Calibration')
+        direction_pool = [0, 90, 180, 270];        
+        expt.numTrials = 2000;
+        expt.field = zeros(1, expt.numTrials);      % inferior VF = 0, superior VF = 1
+        sup_trials = binaryrandomize(expt.numTrials);        % select a random half of trials to present upper
+        expt.field(sup_trials) = 1;
+        expt.sequence = cell(1, expt.numTrials);       % contains sequence for every trial
+        sequence_lengths = ones(1, expt.numTrials);    % lengths of each of the sequences (random thirds)
+        for ss = 1:expt.numTrials
+            curr_length = sequence_lengths(ss);
+            random_directions = datasample(direction_pool, curr_length);
+            expt.sequence{ss} = random_directions;
+        end
     end
 
 

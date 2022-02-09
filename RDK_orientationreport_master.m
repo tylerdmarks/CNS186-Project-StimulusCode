@@ -4,8 +4,10 @@ KbName('UnifyKeyNames');        % fixes an error calling KbName('ESCAPE'), might
 
 screenID = 0;
 testing = 0;
+scale_size = 0;                 % whether or not to scale dot size based on x-dir eccentricity
+scale_speed = 0;                % whether or not to scale dot speed based on x-dir eccentricity
 % File name, change for each new participant       'subjectnumber_nameoftask_date'
-ID = 'S001_sequencereport_TEST_220208'; 
+ID = 'S001_orientationtask_TEST_220208'; 
 % Get monitor's refresh rate
 fr = Screen('NominalFrameRate', screenID);          
 % set background color for drawing
@@ -16,14 +18,14 @@ fullpath = ('C:\Experiment Data\CNS186 project');            % operational folde
 data_filename = sprintf('%s.mat', ID);
 
 % set up timings and parameters
-dot_properties.speed = 50;      % degrees per second
+dot_properties.speed = 50;              % degrees per second
 dot_properties.ndots = 240;
-dot_properties.lifetime = 0.750*fr;            % frames (secs*framerate)
-dot_properties.coherence(1) = 0.60;       % coherence for inferior visual field (first index)
-dot_properties.coherence(2) = 0.60;       % coherence for superior visual field (second index)
+dot_properties.lifetime = 0.750*fr;         % frames (secs*framerate) 
+dot_properties.coherence(1) = 0.70;       % coherence for inferior visual field (first index)
+dot_properties.coherence(2) = 0.70;       % coherence for superior visual field (second index)
 dot_properties.color = [0 0 0];             % black dots
-RDKduration = 0.4;                        % duration of each element in RDK sequence (seconds)
-ISI = 0.2;                              % duration of interval in between RDK sequence elements
+RDKduration = 0.8;                        % duration of each element in RDK sequence (seconds)
+ISI = 0.6;                              % duration of interval in between RDK sequence elements
 
 % Fixation parameters
 fix.size = 16; % pixels, cross
@@ -32,7 +34,7 @@ fix.color = [0 0 0]; % color of fixation
 fix.duration = 1;       % duration of initial fixation
 
 % Generate experiment information
-expt = generateRDKExptStructure('Sequence report constant diff');
+expt = generateRDKExptStructure('Orientation report');
 
 %% Initialize
 
@@ -43,8 +45,6 @@ HideCursor;
 
 % initialize Psychtoolbox
 % can't run PTB on laptop without skipping sync tests
-Screen('Preference', 'SkipSyncTests', 1);  
-
 if testing
     AssertOpenGL;
     [ptr,winrect] = Screen('OpenWindow', screenID, 0);
@@ -68,7 +68,7 @@ if ~testing
 end
 
 % set aperture size according to screen dimensions
-aperture.size = [displaySize(1)*0.7 displaySize(2)*0.4];             % size of aperture (ellipse, [x, y] dimensions)
+aperture.size = [displaySize(1)*0.9 displaySize(2)*0.4];             % size of aperture (ellipse, [x, y] dimensions)
 % set dot size according to screen dimensions
 dot_properties.size = displaySize(2)*0.015;
 
@@ -90,7 +90,7 @@ aperture.pos(2, :) = [0 displaySize(2)*0.25];     % inferior field RDK aperture 
 
 % create data storage for responses
 response.time = zeros(1, expt.numTrials);       % store time it takes to complete response
-response.sequence = cell(1, expt.numTrials);    % store response sequences
+response.orientation = zeros(1, expt.numTrials);    % store response orientations
 % Set text size
 Screen('TextSize', ptr, 64);
 %% Task preparation
@@ -166,6 +166,7 @@ for tt = 1:expt.numTrials
         pixpos.y = pixpos.y + winCtr(2);
         
         % dot movement
+        % might add some kind of scaling factor depending on how far the dot is from center of screen (x direction)
         dx = dot_properties.speed*sin(dot_properties.direction*pi/180)/fr;
         dy = -dot_properties.speed*cos(dot_properties.direction*pi/180)/fr;
 
@@ -177,6 +178,11 @@ for tt = 1:expt.numTrials
         t = aperture_center(2)+aperture.size(2)/2;
 
         dot_properties.life = ceil(rand(1,dot_properties.ndots)*dot_properties.lifetime);
+        
+        %%%% might add some kind of size scaling based on distance of dot from center of screen (x direction)
+        
+        
+        %%%%
 
         preElementTime = GetSecs;
 
@@ -187,16 +193,32 @@ for tt = 1:expt.numTrials
             %convert from degrees to screen pixels
             pixpos.x = dot_properties.x+ display.resolution(1)/2;
             pixpos.y = dot_properties.y+ display.resolution(2)/2;
-
+            
+            % size scaling based on distance from center (x direction)
+            if scale_size == 1
+                curr_dotsize = ceil(dot_properties.size + abs(0.02*(pixpos.x - winCtr(1))));
+            else
+                curr_dotsize = dot_properties.size*ones(1, dot_properties.ndots);
+            end
+            
             %Use the equation of an ellipse to determine which dots fall inside.
             goodDots = (dot_properties.x-aperture_center(1)).^2/(aperture.size(1)/2)^2 + ...  
                 (dot_properties.y-aperture_center(2)).^2/(aperture.size(2)/2)^2 < 1;
 
             % if you're using an ellipse, add pixpos.x(goodDots) and for y too
-            Screen('DrawDots', ptr, [pixpos.x(goodDots); pixpos.y(goodDots)],  dot_properties.size, dot_properties.color, [0, 0], 3);
+            Screen('DrawDots', ptr, [pixpos.x(goodDots); pixpos.y(goodDots)], curr_dotsize(goodDots), dot_properties.color, [0, 0], 3);
             %update the dot position
-            dot_properties.x = dot_properties.x + dx;
-            dot_properties.y = dot_properties.y + dy;
+            
+            % speed scaling (this doesn't work yet)
+            if scale_speed == 1
+                curr_dx = ceil(dx + abs(0.01*(dot_properties.x - winCtr(1))));
+                curr_dy = ceil(dy + abs(0.01*(dot_properties.x - winCtr(1))));
+            else
+                curr_dx = dx;
+                curr_dy = dy;
+            end
+            dot_properties.x = dot_properties.x + curr_dx;
+            dot_properties.y = dot_properties.y + curr_dy;
 
             %move the dots that are outside the aperture back one aperture
             %width.
@@ -248,76 +270,61 @@ for tt = 1:expt.numTrials
     end
 
     %% RESPONSE PERIOD
-    % log duration of response period and response sequence
+    % log duration of response period and response orientation
     response_complete = false;
-    curr_response = [];
-    offset = displaySize(1)/32;            % element distancing in x direction
-    feedback_startpoint_x = winCtr(1)-offset*(length(sequence)/2)+offset/2;     % starting x location for feedback display, based on sequence length
-%     feedback_startpoint_x = winCtr(1)-(displaySize(1)/80)*(length(sequence));     % starting x location for feedback display, based on sequence length
-    feedback_y = winCtr(2);     % starting y location for feedback
     preResptime = GetSecs;
-    while ~response_complete
-        % if response vector is equal to length of sequence, response is complete
-        if length(curr_response) == length(sequence)
-            response_complete = true;
-        end
-        
-        % Gray background
-        Screen('FillRect', ptr, background)
-        % Instructions
-        DrawFormattedText(ptr, 'Repeat the sequence with the arrow keys.', 'center', winCtr(2) - displaySize(2)/4, fix.color);
-%         % Draw response options (arrows at set locations)
-%         drawArrow(ptr, 'up', [winCtr(1)-displaySize(1)/20 winCtr(2)-displaySize(2)/6])
-%         drawArrow(ptr, 'right', [winCtr(1)-displaySize(1)/60 winCtr(2)-displaySize(2)/6])
-%         drawArrow(ptr, 'down', [winCtr(1)+displaySize(1)/60 winCtr(2)-displaySize(2)/6])
-%         drawArrow(ptr, 'left', [winCtr(1)+displaySize(1)/20 winCtr(2)-displaySize(2)/6])
+   
+    % Gray background
+    Screen('FillRect', ptr, background)
+    % Instructions
+    DrawFormattedText(ptr, 'Which direction are you facing?', 'center', winCtr(2) - displaySize(2)/4, fix.color);
+    DrawFormattedText(ptr, 'Up is starting position (forward).', 'center', winCtr(2) - displaySize(2)/8, fix.color);
+    % Draw response options (arrows at set locations)
+    drawArrow(ptr, 'up', [winCtr(1) winCtr(2)-displaySize(2)/30], displaySize)
+    drawArrow(ptr, 'left', [winCtr(1)-displaySize(1)/50 winCtr(2)], displaySize)
+    drawArrow(ptr, 'down', [winCtr(1) winCtr(2)+displaySize(2)/30], displaySize)
+    drawArrow(ptr, 'right', [winCtr(1)+displaySize(1)/50 winCtr(2)], displaySize)
 
-        % Draw 
-        for rr = 1:length(curr_response)
-            % get x location (add set distance per element)
-            x_loc = feedback_startpoint_x + (rr-1)*offset;
-            % draw element
-            switch curr_response(rr)
-                case 270
-                    drawArrow(ptr, 'left', [x_loc feedback_y], displaySize);
-                case 90
-                    drawArrow(ptr, 'right', [x_loc feedback_y], displaySize);
-                case 0
-                    drawArrow(ptr, 'up', [x_loc feedback_y], displaySize);
-                case 180
-                    drawArrow(ptr, 'down', [x_loc feedback_y], displaySize);
-            end
-        end
-        
-        % render everything
-        Screen('Flip', ptr);
-        
-        % check response
-        if ~response_complete
-            [~, keycode, ~] = KbStrokeWait(-1);
-            if keycode(KbName('LeftArrow'))
-                curr_response = [curr_response 270];
-            elseif keycode(KbName('RightArrow'))
-                curr_response = [curr_response 90];
-            elseif keycode(KbName('UpArrow'))
-                curr_response = [curr_response 0];
-            elseif keycode(KbName('DownArrow'))
-                curr_response = [curr_response 180];
-            elseif keycode(KbName('ESCAPE'))
-                sca
-                % Save all workspace variables
-                save(data_filename)
-                return
-            end
-        end
-        
-        if response_complete
-            curr_resptime = GetSecs-preResptime;
-            pause(1)
-        end
+    % render everything
+    Screen('Flip', ptr);
+
+    % check response
+    [~, keycode, ~] = KbStrokeWait(-1);
+    if keycode(KbName('LeftArrow'))
+        curr_response = 270;
+    elseif keycode(KbName('RightArrow'))
+        curr_response = 90;
+    elseif keycode(KbName('UpArrow'))
+        curr_response = 0;
+    elseif keycode(KbName('DownArrow'))
+        curr_response = 180;
+    elseif keycode(KbName('ESCAPE'))
+        sca
+        % Save all workspace variables
+        save(data_filename)
+        return
     end
+
+    curr_resptime = GetSecs-preResptime;
+
     response.time(tt) = curr_resptime;
-    response.sequence{tt} = curr_response;
+    response.orientation(tt) = curr_response;
+    
+    % draw subject's response
+    switch curr_response
+        case 0
+            drawArrow(ptr, 'up', [winCtr(1) winCtr(2)-displaySize(2)/30], displaySize)
+        case 90
+            drawArrow(ptr, 'right', [winCtr(1)+displaySize(1)/50 winCtr(2)], displaySize)
+        case 180
+            drawArrow(ptr, 'down', [winCtr(1) winCtr(2)+displaySize(2)/30], displaySize)
+        case 270
+            drawArrow(ptr, 'left', [winCtr(1)-displaySize(1)/50 winCtr(2)], displaySize)
+    end
+    DrawFormattedText(ptr, 'Which direction are you facing?', 'center', winCtr(2) - displaySize(2)/4, fix.color);
+    DrawFormattedText(ptr, 'Up is starting position (forward).', 'center', winCtr(2) - displaySize(2)/8, fix.color);
+    Screen('Flip', ptr);
+    pause(1)
     
 end
 % clear screen
@@ -369,10 +376,11 @@ end
 function drawArrow(ptr, direction, headloc, displaySize)
     % Draws an arrow using FillPoly and DrawLines
     % direction = direction the arrowheadloc is facing
-    % location = [x,y] location of arrowhead
-   
-    arrowwidth  = displaySize(2)*0.018;           % width of arrow head
-    linelength = displaySize(2)*0.018;            % length of the arrow's line
+    % location = [x,y] location of arrowheadloc
+    
+    % create a triangle
+    arrowwidth  = displaySize(2)*0.018;           % width of arrow headloc
+    linelength = displaySize(2)*0.018;
     switch direction
         case 'up'
         tripoints = [ headloc-[arrowwidth/2,0]         
@@ -396,7 +404,7 @@ function drawArrow(ptr, direction, headloc, displaySize)
         linecoords = [headloc(1)-linelength headloc(2) headloc(1) headloc(2)];
     end
     Screen('FillPoly', ptr, [0 0 0], tripoints);
-    Screen('DrawLine', ptr, [0 0 0], linecoords(1), linecoords(2), linecoords(3), linecoords(4), 4);
+    Screen('DrawLine', ptr, [0 0 0], linecoords(1), linecoords(2), linecoords(3), linecoords(4), 10);
         
 end
 
