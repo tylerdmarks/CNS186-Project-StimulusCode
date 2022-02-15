@@ -5,7 +5,7 @@ KbName('UnifyKeyNames');        % fixes an error calling KbName('ESCAPE'), might
 screenID = 0;
 testing = 0;
 % File name, change for each new participant       'subjectnumber_nameoftask_date'
-ID = 'S001_sequencereport_TEST_220208'; 
+ID = 'S002_sequencereport_TEST_220215'; 
 % Get monitor's refresh rate
 fr = Screen('NominalFrameRate', screenID);          
 % set background color for drawing
@@ -16,14 +16,14 @@ fullpath = ('C:\Experiment Data\CNS186 project');            % operational folde
 data_filename = sprintf('%s.mat', ID);
 
 % set up timings and parameters
-dot_properties.speed = 50;      % degrees per second
+dot_properties.speed = 50;      % degrees per second            50
 dot_properties.ndots = 240;
-dot_properties.lifetime = 0.750*fr;            % frames (secs*framerate)
+dot_properties.lifetime = 0.750*fr;            % frames (secs*framerate)            0.75
 dot_properties.coherence(1) = 0.60;       % coherence for inferior visual field (first index)
 dot_properties.coherence(2) = 0.60;       % coherence for superior visual field (second index)
 dot_properties.color = [0 0 0];             % black dots
-RDKduration = 0.4;                        % duration of each element in RDK sequence (seconds)
-ISI = 0.2;                              % duration of interval in between RDK sequence elements
+RDKduration = 0.4;                        % duration of each element in RDK sequence (seconds)      0.4
+ISI = 0.1;                              % duration of interval in between RDK sequence elements         0.2
 
 % Fixation parameters
 fix.size = 16; % pixels, cross
@@ -70,11 +70,11 @@ end
 % set aperture size according to screen dimensions
 aperture.size = [displaySize(1)*0.7 displaySize(2)*0.4];             % size of aperture (ellipse, [x, y] dimensions)
 % set dot size according to screen dimensions
-dot_properties.size = displaySize(2)*0.015;
+dot_properties.size = displaySize(2)*0.015;                 % 1.5% of projector screen ~= 0.5 degrees of visual angle
 
 % display properties struct
-display.dist = 60;   % cm        distance from screen?
-display.width = 80;   % cm    width of screen?
+display.dist = 60;   % cm        distance from screen
+display.width = 80;   % cm    width of screen
 display.resolution = displaySize;
 display.framerate = fr;
 
@@ -89,7 +89,8 @@ aperture.pos(1, :) = [0 -displaySize(2)*0.25];     % superior field RDK aperture
 aperture.pos(2, :) = [0 displaySize(2)*0.25];     % inferior field RDK aperture (second index)
 
 % create data storage for responses
-response.time = zeros(1, expt.numTrials);       % store time it takes to complete response
+response.firsttime = zeros(1, expt.numTrials);       % store time it takes to enter first element in sequence
+response.totaltime = zeros(1, expt.numTrials);       % store time it takes to complete response
 response.sequence = cell(1, expt.numTrials);    % store response sequences
 % Set text size
 Screen('TextSize', ptr, 64);
@@ -310,13 +311,16 @@ for tt = 1:expt.numTrials
                 return
             end
         end
-        
+        if length(curr_response) == 1
+            firsttime = GetSecs - preResptime;
+        end
         if response_complete
             curr_resptime = GetSecs-preResptime;
             pause(1)
         end
     end
-    response.time(tt) = curr_resptime;
+    response.firsttime(tt) = firsttime;
+    response.totaltime(tt) = curr_resptime;
     response.sequence{tt} = curr_response;
     
 end

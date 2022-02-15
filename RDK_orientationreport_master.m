@@ -7,7 +7,7 @@ testing = 0;
 scale_size = 0;                 % whether or not to scale dot size based on x-dir eccentricity
 scale_speed = 0;                % whether or not to scale dot speed based on x-dir eccentricity
 % File name, change for each new participant       'subjectnumber_nameoftask_date'
-ID = 'S001_orientationtask_TEST_220208'; 
+ID = 'S002_orientationreport_TEST_220215'; 
 % Get monitor's refresh rate
 fr = Screen('NominalFrameRate', screenID);          
 % set background color for drawing
@@ -70,11 +70,11 @@ end
 % set aperture size according to screen dimensions
 aperture.size = [displaySize(1)*0.9 displaySize(2)*0.4];             % size of aperture (ellipse, [x, y] dimensions)
 % set dot size according to screen dimensions
-dot_properties.size = displaySize(2)*0.015;
+dot_properties.size = displaySize(2)*0.015;                     % equals 0.5 degrees visual angle
 
 % display properties struct
-display.dist = 60;   % cm        distance from screen?
-display.width = 80;   % cm    width of screen?
+display.dist = 60;   % cm        distance from screen
+display.width = 80;   % cm    width of screen
 display.resolution = displaySize;
 display.framerate = fr;
 
