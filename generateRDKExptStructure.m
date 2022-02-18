@@ -25,7 +25,7 @@ function expt = generateRDKExptStructure(preset_name)
         length = 6;
         % going to want at least 30 trials each difficulty (90 total)
         % 90 trials ~= 15min
-        expt.numTrials = 90;
+        expt.numTrials = 80;
         expt.field = zeros(1, expt.numTrials);      % inferior VF = 0, superior VF = 1
         sup_trials = binaryrandomize(expt.numTrials);        % select a random half of trials to present upper
         expt.field(sup_trials) = 1;
@@ -37,8 +37,8 @@ function expt = generateRDKExptStructure(preset_name)
     elseif strcmp(preset_name, 'Orientation report')
         direction_pool = [90, 270];
         lengths = [6 7];
-        % at least 30 trials each difficulty (90 total)
-        expt.numTrials = 90;
+        % at least 30 trials each difficulty 
+        expt.numTrials = 88;
         expt.field = zeros(1, expt.numTrials);      % inferior VF = 0, superior VF = 1
         sup_trials = binaryrandomize(expt.numTrials);        % select a random half of trials to present upper
         expt.field(sup_trials) = 1;

@@ -5,7 +5,7 @@ KbName('UnifyKeyNames');        % fixes an error calling KbName('ESCAPE'), might
 screenID = 0;
 testing = 0;
 % File name, change for each new participant       'subjectnumber_nameoftask_date'
-ID = 'S002_sequencereport_TEST_220215'; 
+ID = 'S005_sequencereport_220217'; 
 % Get monitor's refresh rate
 fr = Screen('NominalFrameRate', screenID);          
 % set background color for drawing
@@ -22,8 +22,8 @@ dot_properties.lifetime = 0.750*fr;            % frames (secs*framerate)        
 dot_properties.coherence(1) = 0.60;       % coherence for inferior visual field (first index)
 dot_properties.coherence(2) = 0.60;       % coherence for superior visual field (second index)
 dot_properties.color = [0 0 0];             % black dots
-RDKduration = 0.4;                        % duration of each element in RDK sequence (seconds)      0.4
-ISI = 0.1;                              % duration of interval in between RDK sequence elements         0.2
+RDKduration = 0.40;                        % duration of each element in RDK sequence (seconds)      0.45
+ISI = 0.2;                              % duration of interval in between RDK sequence elements         0.2
 
 % Fixation parameters
 fix.size = 16; % pixels, cross

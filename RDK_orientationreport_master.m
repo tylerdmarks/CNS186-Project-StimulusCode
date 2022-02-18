@@ -7,7 +7,7 @@ testing = 0;
 scale_size = 0;                 % whether or not to scale dot size based on x-dir eccentricity
 scale_speed = 0;                % whether or not to scale dot speed based on x-dir eccentricity
 % File name, change for each new participant       'subjectnumber_nameoftask_date'
-ID = 'S002_orientationreport_TEST_220215'; 
+ID = 'S005_orientationreport_220217'; 
 % Get monitor's refresh rate
 fr = Screen('NominalFrameRate', screenID);          
 % set background color for drawing
@@ -25,7 +25,7 @@ dot_properties.coherence(1) = 0.70;       % coherence for inferior visual field 
 dot_properties.coherence(2) = 0.70;       % coherence for superior visual field (second index)
 dot_properties.color = [0 0 0];             % black dots
 RDKduration = 0.8;                        % duration of each element in RDK sequence (seconds)
-ISI = 0.6;                              % duration of interval in between RDK sequence elements
+ISI = 0.55;                              % duration of interval in between RDK sequence elements
 
 % Fixation parameters
 fix.size = 16; % pixels, cross
