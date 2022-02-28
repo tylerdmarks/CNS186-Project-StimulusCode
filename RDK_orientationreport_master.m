@@ -7,7 +7,7 @@ testing = 0;
 scale_size = 0;                 % whether or not to scale dot size based on x-dir eccentricity
 scale_speed = 0;                % whether or not to scale dot speed based on x-dir eccentricity
 % File name, change for each new participant       'subjectnumber_nameoftask_date'
-ID = 'S005_orientationreport_220217'; 
+ID = 'S012_orientationreport_220228'; 
 % Get monitor's refresh rate
 fr = Screen('NominalFrameRate', screenID);          
 % set background color for drawing

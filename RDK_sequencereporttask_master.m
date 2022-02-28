@@ -5,7 +5,7 @@ KbName('UnifyKeyNames');        % fixes an error calling KbName('ESCAPE'), might
 screenID = 0;
 testing = 0;
 % File name, change for each new participant       'subjectnumber_nameoftask_date'
-ID = 'S005_sequencereport_220217'; 
+ID = 'S012_sequencereport_220228'; 
 % Get monitor's refresh rate
 fr = Screen('NominalFrameRate', screenID);          
 % set background color for drawing
@@ -46,6 +46,7 @@ HideCursor;
 Screen('Preference', 'SkipSyncTests', 1);  
 
 if testing
+    Screen('Preference', 'SkipSyncTests', 1);
     AssertOpenGL;
     [ptr,winrect] = Screen('OpenWindow', screenID, 0);
 else
