@@ -80,13 +80,17 @@ ylabel('Mean response time (s)')
 xticks([1 2])
 xticklabels({'Inf', 'Sup'})
 title('Orientation task, pooled data')
-
+axis square
 %% Performance
 performance_inf = zeros(1, num_subjects);  % average performance in inferior field for each indiv
 performance_sup = zeros(1, num_subjects);  % average performance in superior field for each indiv
-difficulty_edges = [0 0.26 0.6 1.1];                % easy, medium, hard edges
+difficulty_edges = [0 0.26 0.49 1.1];                % easy, medium, hard edges
 diffcurve_inf = zeros(num_subjects, length(difficulty_edges)-1);         % performance vs difficulty for each field
-diffcurve_sup = zeros(num_subjects, length(difficulty_edges)-1);     
+diffcurve_sup = zeros(num_subjects, length(difficulty_edges)-1);  
+performance_inf_turn = zeros(1, num_subjects);
+performance_inf_noturn = zeros(1, num_subjects);
+performance_sup_turn = zeros(1, num_subjects);
+performance_sup_noturn = zeros(1, num_subjects);
 
 for ii = 1:num_subjects
     expt = data(ii).expt;
@@ -102,8 +106,10 @@ for ii = 1:num_subjects
     right = [1 5 -3 -7];        % results that equate to right
     behind = [2 6 -2 -6];
     left = [3 7 -1 -5];
-    end_direction = zeros(1, length(sequence));
-    seq_difficulty = zeros(1, length(sequence));
+    end_direction = zeros(1, length(sequence));         % for calculating end orientation
+    seq_difficulty = zeros(1, length(sequence));        % sequence difficulty 
+    turn = zeros(1, length(sequence));            % for tracking which sequences turn around the 180 degree point
+    
     for ss = 1:length(sequence)
         curr_seq = sequence{ss};
         counter = 0;        % start a counter, 0 = facing forward
@@ -127,29 +133,54 @@ for ii = 1:num_subjects
         c = max(diff([0 find(diff(sequence{ss})) numel(sequence{ss})]));       % max number of consecutive elements
         seq_difficulty(ss) = 1/c;     % for now just directly scored by c
         
+        if abs(counter) >= 3    
+            turn(ss) = 1;
+        end
     end
     
     binned_difficulty = discretize(seq_difficulty, difficulty_edges);       % bin difficulties into 3 ranges (easy, medium, hard)
 
     correct_response = end_direction == response_ori;
+    
+    % average performance in each field
     performance_inf(ii) = sum(correct_response(field == 0))/sum(field == 0);
     performance_sup(ii) = sum(correct_response(field == 1))/sum(field == 1);
     
+    % performance vs difficulty
     for dd = 1:length(difficulty_edges)-1
         diffcurve_inf(ii, dd) = sum(correct_response(field == 0 & binned_difficulty == dd))/sum(field == 0 & binned_difficulty == dd);   % inf field, curr difficulty
         diffcurve_sup(ii, dd) = sum(correct_response(field == 1 & binned_difficulty == dd))/sum(field == 1 & binned_difficulty == dd);   % sup field, curr difficulty
     end
+    
+    % performance in turnover trials vs no turnover
+    performance_inf_turn(ii) = sum(correct_response(field == 0 & turn))/sum(field == 0 & turn);
+    performance_inf_noturn(ii) = sum(correct_response(field == 0 & ~turn))/sum(field == 0 & ~turn);
+    performance_sup_turn(ii) = sum(correct_response(field == 1 & turn))/sum(field == 1 & turn);
+    performance_sup_noturn(ii) = sum(correct_response(field == 1 & ~turn))/sum(field == 1 & ~turn);
 end
 
+% pooled performance
 avg_performance_inf = nanmean(performance_inf);
 se_performance_inf = nanstd(performance_inf)/sqrt(num_subjects);
 avg_performance_sup = nanmean(performance_sup);
 se_performance_sup = nanstd(performance_sup)/sqrt(num_subjects);
 
+% diffcurve
 avg_diffcurve_inf = nanmean(diffcurve_inf, 1);
 se_diffcurve_inf = nanstd(diffcurve_inf, [], 1)/sqrt(num_subjects);
 avg_diffcurve_sup = nanmean(diffcurve_sup, 1);
 se_diffcurve_sup = nanstd(diffcurve_sup, [], 1)/sqrt(num_subjects);
+
+% as a function of turn
+avg_performance_inf_turn = nanmean(performance_inf_turn);
+se_performance_inf_turn = nanstd(performance_inf_turn)/sqrt(num_subjects);
+avg_performance_sup_turn = nanmean(performance_sup_turn);
+se_performance_sup_turn = nanstd(performance_sup_turn)/sqrt(num_subjects);
+avg_performance_inf_noturn = nanmean(performance_inf_noturn);
+se_performance_inf_noturn = nanstd(performance_inf_noturn)/sqrt(num_subjects);
+avg_performance_sup_noturn = nanmean(performance_sup_noturn);
+se_performance_sup_noturn = nanstd(performance_sup_noturn)/sqrt(num_subjects);
+
 
 figure
 hold on
@@ -175,4 +206,16 @@ title('Average performance by difficulty');
 xlabel('Difficulty')
 ylabel('Orientation report performance')
 
+figure
+hold on
+bar([1 2], [avg_performance_inf_noturn avg_performance_sup_noturn], 1);
+errorbar([1 2], [avg_performance_inf_noturn avg_performance_sup_noturn], [se_performance_inf_noturn se_performance_sup_noturn], 'LineStyle', 'none')
+bar([3 4], [avg_performance_inf_turn avg_performance_sup_turn], 1);
+errorbar([3 4], [avg_performance_inf_turn avg_performance_sup_turn], [se_performance_inf_turn se_performance_sup_turn], 'LineStyle', 'none')
+[~, p_turn] = ttest(performance_inf_turn, performance_sup_turn);
+[~, p_noturn] = ttest(performance_inf_noturn, performance_sup_noturn);
+xlim([0 5])
+ylim([0 1])
+xlabel('Visual field')
+ylabel('Orientation report performance (% correct)')
 
