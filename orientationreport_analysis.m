@@ -119,6 +119,10 @@ for ii = 1:num_subjects
             elseif curr_seq(ee) == 90
                 counter = counter - 1;
             end
+            
+            if abs(counter) >= 3    
+                turn(ss) = 1;
+            end
         end
         if any(counter == forward)
             end_direction(ss) = 0;
@@ -133,9 +137,7 @@ for ii = 1:num_subjects
         c = max(diff([0 find(diff(sequence{ss})) numel(sequence{ss})]));       % max number of consecutive elements
         seq_difficulty(ss) = 1/c;     % for now just directly scored by c
         
-        if abs(counter) >= 3    
-            turn(ss) = 1;
-        end
+        
     end
     
     binned_difficulty = discretize(seq_difficulty, difficulty_edges);       % bin difficulties into 3 ranges (easy, medium, hard)

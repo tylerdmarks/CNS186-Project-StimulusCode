@@ -78,6 +78,7 @@ for ss = 1:num_subjects
 end
 xticklabels(labels);
 
+
 %%%% Plotting  pooled data
 
 % firsttime
@@ -109,6 +110,7 @@ ylabel('Mean first response time (s)')
 xticks([1 2])
 xticklabels({'Inf', 'Sup'})
 title('Sequence task, pooled data')
+axis square
 
 % totaltime
 ttinf_avg = mean(pooled_tt_inf);
@@ -139,9 +141,10 @@ ylabel('Mean total response time (s)')
 xticks([1 2])
 xticklabels({'Inf', 'Sup'})
 title('Sequence task, pooled data')
+axis square
 
 %% Performance
-perfmetric = 'LCS';     % metric for measuring performance: 'Percent correct' or 'LCS'
+perfmetric = 'Percent correct';     % metric for measuring performance: 'Percent correct' or 'LCS'
 performance_inf = zeros(1, num_subjects);  % average performance in inferior field for each indiv
 performance_sup = zeros(1, num_subjects);  % average performance in superior field for each indiv
 difficulty_edges = [0 1.1 2.1 10];                % easy, medium, hard edges
@@ -225,6 +228,7 @@ switch perfmetric
 end
 title(sprintf('Average performance, p = %.2d', p))
 xlabel('Visual field')
+axis square
 
 figure
 hold on
@@ -244,8 +248,6 @@ switch perfmetric
 end
 title('Average performance by difficulty');
 xlabel('Sequence difficulty')
-
-
 
 
 function sequencestring = sequencetostring(sequence)
